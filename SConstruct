@@ -4,47 +4,48 @@ import SCons
 
 ###### Ininitialize env virables #######
 ########################################
-# Include paths: -Iinclude without '-I'
 cxx = 'mpicxx'
-cpppath = ['src', 'include', 'dep/sgpp-base-2.0.0/base/src']
 # Compile flags
-cppflags = ['-O3','-g','-std=c++11','-fmessage-length=0',
-            '-Wno-unused-result','-Wno-deprecated','-pedantic']
+cppflags = ['-O3','-std=c++11']
+# Include paths: -Iinclude without '-I'
+cpppath = []
 # Library look up paths: -Lpath without '-L'
-libpath = ['lib']
+libpath = []
 # Libraries to link: -lmylib without '-l'
-libs = ['m','sgppbase','mpi','mpicxx']
+libs = ['mpi','mpicxx']
 ########################################
 
+#### Local variables ####
+#########################
+homedir = os.path.expenduser("~")
+basedir = os.getcwd()
+srcdir = basedir + "/src"
+bindir = basedir + "/bin"
+#########################
 
 #### Customs command line variables ####
 ########################################
+homedir = os.path.expenduser("~")
 vars = Variables()
-vars.Add(BoolVariable("ENABLE_IMPI", "Enable elastic MPI (default: 0)", False))
-vars.Add("IMPI_ADAPT", "Set iMPI resource adaptation frequency (defalt: 30)", 30)
-vars.Add("EXEC", "Set executable name (default: main)", "main")
+vars.Add("impifreq", "Set iMPI adaptation frequency (defalt: 120)", 120)
+vars.Add("impipath", "Set iMPI install path", homedir + "/workspace/ihpc-install")
 ########################################
 
 
 ########## Setup environment ###########
 ########################################
 env = Environment(variables=vars, ENV=os.environ)
-env.Replace(CXX=cxx)
-env.Append(CPPPATH=cpppath)
-env.Append(CPPFLAGS=cppflags)
-env["ENABLE_IMPI"] = env.get("ENABLE_IMPI")
-env["IMPI_ADAPT"] = env.get("IMPI_ADAPT")
+impifreq = env.get("impifreq")
+impipath = env.get("impipath")
 
-if (env["ENABLE_IMPI"]):
-    libpath += ['/media/data/nfs/install/lib']
-    env.Append(CPPPATH='/media/data/nfs/install/include')
-    env.Append( CPPDEFINES=['ENABLE_IMPI=1'] )
-else:
-    libpath += ['/media/data/install/mpich-3.2/lib']
-    env.Append(CPPPATH='/media/data/install/mpich-3.2/include')
-    env.Append( CPPDEFINES=['ENABLE_IMPI=0'] )
-    
-env.Append( CPPDEFINES=['IMPI_ADAPT=' + str(env["IMPI_ADAPT"])]   )
+cpppath += [impipath + '/include']
+libpath += [impipath + '/lib']
+
+env.Replace( CXX=cxx )
+env.Append( CPPPATH=cpppath )
+evn.Append( LD_LIBRARY_PATH=libpath )
+env.Append( CPPFLAGS=cppflags )
+env.Append( CPPDEFINES=['IMPI_FREQ=' + str(impifreq)] )
 ########################################
 
 
@@ -64,7 +65,11 @@ Available options are:
 
 ################ BUILD #################
 ########################################
+# For every .cpp file in src
+for cfile in 
+
 # Specify build name
+
 BuildName = env.get("EXEC")
 # Save the base path
 BASEPATH = os.getcwd()
