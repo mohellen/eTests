@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
 		}
 
 		sleep(120);
-		impi_adapt(); //impi_adapt must be at END of loop
+		impi_adapt(mpisize, mpirank, mpistatus, iter); //impi_adapt must be at END of loop
 	}
 	MPI_Finalize();
 	return 0;
