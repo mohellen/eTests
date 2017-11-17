@@ -17,6 +17,8 @@ int MPI_Comm_adapt_commit(void);
 
 */
 
+// IMPI_FREQ defined at compile time
+
 
 void impi_adapt(
 		int& mpisize,
@@ -33,7 +35,8 @@ void impi_adapt(
 	if (adapt_flag == MPI_ADAPT_TRUE) {
 		MPI_Comm_adapt_begin(&intercomm, &newcomm, &numstay, &numleave, &numjoin);
 		//************* adapt window ***************
-		printf("Adapting... %d staying, %d leaving, %d joining.", numstay, numleave, numjoin);
+		if (mpistatus == MPI_ADAPT_STATUS_STAYING && mpirank == 0)
+			printf("Adapting... %d staying, %d leaving, %d joining.\n", numstay, numleave, numjoin);
 		MPI_Bcast(&iter, 1, MPI_INT, 0, newcomm);
 		//*********** adapt window end *************
 		MPI_Comm_adapt_commit();
@@ -41,6 +44,13 @@ void impi_adapt(
 		MPI_Comm_rank(MPI_COMM_WORLD, &mpirank);
 	}
 	return;
+}
+
+bool is_root(
+		const int& mpirank,
+		const int& mpistatus)
+{
+	return (mpirank == 0 && mpistatus != MPI_ADAPT_STATUS_JOINING);		
 }
 
 
@@ -52,7 +62,7 @@ int main(int argc, char* argv[]) {
 	MPI_Comm_size(MPI_COMM_WORLD, &mpisize);
 	MPI_Comm_rank(MPI_COMM_WORLD, &mpirank);
 
-	int iter = 0, itermax = 10;
+	int iter = 1, itermax = 50;
 
 	// Joining ranks adapt directly
 	if (mpistatus == MPI_ADAPT_STATUS_JOINING) {
@@ -60,18 +70,13 @@ int main(int argc, char* argv[]) {
 	}
 
 	// Main loop
-	while (iter < itermax) {
-		iter++;
+	for (; iter <= itermax; ++iter) {
 
-		if (mpirank == 0) {
-			printf("Iteration %d:", iter);
-			printf("Total ranks: %d. First rank: %d.", mpisize, mpirank);
-		}
-		if (mpirank == mpisize-1) {
-			printf("Total ranks: %d. Last rank: %d.\n\n", mpisize, mpirank);
+		if (is_root(mpirank, mpistatus)) {
+			printf("Iteration %d: total ranks %d\n", iter, mpisize);
 		}
 
-		sleep(120);
+		sleep(IMPI_FREQ);
 		impi_adapt(mpisize, mpirank, mpistatus, iter); //impi_adapt must be at END of loop
 	}
 	MPI_Finalize();

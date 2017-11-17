@@ -27,7 +27,7 @@ bindir = basedir + "/bin"
 ########################################
 vars = Variables()
 vars.Add("impifreq", "Set iMPI adaptation frequency (defalt: 120)", 120)
-vars.Add("impipath", "Set iMPI install path", homedir + "/workspace/ihpc-install")
+vars.Add("impipath", "Set iMPI install path", homedir + "/workspace/ihpcins")
 ########################################
 
 
